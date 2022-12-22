@@ -500,14 +500,27 @@ handle_request_set_cursor(struct wl_listener *listener, void *data) {
 	}
 }
 
+
+void wlr_cursor_absolute_to_layout_coords_with_output_transform(struct wlr_cursor *cur,
+		struct wlr_input_device *dev, double x, double y,
+		double *lx, double *ly, int output_transform) {
+	*lx = output_transform % 2 == 0 ? x : y;
+	*ly = output_transform % 2 == 1 ? x : y;
+	if (output_transform > 0 && output_transform < 3)
+		*lx = 1.0 - *lx;
+	if (output_transform > 1)
+		*ly = 1.0 - *ly;
+}
+
+
 static void
 handle_touch_down(struct wl_listener *listener, void *data) {
 	struct cg_seat *seat = wl_container_of(listener, seat, touch_down);
 	struct wlr_event_touch_down *event = data;
 
 	double lx, ly;
-	wlr_cursor_absolute_to_layout_coords(seat->cursor, event->device, event->x,
-	                                     event->y, &lx, &ly);
+	wlr_cursor_absolute_to_layout_coords_with_output_transform(seat->cursor, event->device, event->x,
+		event->y, &lx, &ly, seat->server->output_transform);
 
 	double sx, sy;
 	struct wlr_scene_node *node =
@@ -552,8 +565,8 @@ handle_touch_motion(struct wl_listener *listener, void *data) {
 	}
 
 	double lx, ly;
-	wlr_cursor_absolute_to_layout_coords(seat->cursor, event->device, event->x,
-	                                     event->y, &lx, &ly);
+	wlr_cursor_absolute_to_layout_coords_with_output_transform(seat->cursor, event->device, event->x,
+	                                     event->y, &lx, &ly, seat->server->output_transform);
 
 	double sx, sy;
 	struct wlr_scene_node *node =
