@@ -504,12 +504,13 @@ handle_request_set_cursor(struct wl_listener *listener, void *data) {
 void wlr_cursor_absolute_to_layout_coords_with_output_transform(struct wlr_cursor *cur,
 		struct wlr_input_device *dev, double x, double y,
 		double *lx, double *ly, int output_transform) {
-	*lx = output_transform % 2 == 0 ? x : y;
-	*ly = output_transform % 2 == 1 ? x : y;
+	double tx = output_transform % 2 == 0 ? x : y;
+	double ty = output_transform % 2 == 1 ? x : y;
 	if (output_transform > 0 && output_transform < 3)
-		*lx = 1.0 - *lx;
+		tx = 1.0 - tx;
 	if (output_transform > 1)
-		*ly = 1.0 - *ly;
+		ty = 1.0 - ty;
+	wlr_cursor_absolute_to_layout_coords(cur, dev, tx, ty, lx, ly);
 }
 
 
